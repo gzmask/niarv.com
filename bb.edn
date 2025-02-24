@@ -6,8 +6,8 @@
  {watch {:requires ([babashka.fs :as fs]
                     [babashka.process :refer [process destroy]])
          :task (let [server-process (atom nil)
-                     server-file "src/server.clj"
-                     last-modified (atom (fs/last-modified-time server-file))
+                     server-files (fs/list-dir "src")
+                     last-modified (atom (into {} (map (fn [f] [f (fs/last-modified-time f)]) server-files)))
                      restart (fn []
                                (when (deref server-process)
                                  (println "Stopping server...")
@@ -20,7 +20,7 @@
                                          {:inherit true})))]
                  (restart)
                  (while true
-                   (let [current-modified (fs/last-modified-time server-file)]
+                   (let [current-modified (into {} (map (fn [f] [f (fs/last-modified-time f)]) server-files))]
                      (when (not= (deref last-modified) current-modified)
                        (println "\nFile change detected, restarting...")
                        (reset! last-modified current-modified)

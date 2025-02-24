@@ -9,7 +9,7 @@
   []
   (html5
     [:head
-     [:title "Hello Babashka!"]
+     [:title "Hello niarv!"]
      [:meta {:charset "UTF-8"}]
      [:meta {:name "viewport"
              :content "width=device-width, initial-scale=1.0"}]
