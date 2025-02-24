@@ -1,11 +1,24 @@
 (ns server
   (:require
-    [hiccup.core :refer [html]]
     [hiccup.page :refer [html5 include-js]]
+    [clojure.java.io :as io]
     [org.httpkit.server :as server]))
 
+(defn serve-static [req]
+  (let [file-path (apply str (rest (:uri req)))
+        file (io/file file-path)]
+    (if (.exists file)
+      {:status 200
+       :headers {"Content-Type" (case (.substring file-path (inc (.lastIndexOf file-path ".")))
+                                 "css" "text/css"
+                                 "js" "text/javascript"
+                                 "html" "text/html"
+                                 "application/octet-stream")}
+       :body (slurp file)}
+      {:status 404
+       :body "Not found"})))
 
-(defn hello-page
+(defn main-page
   []
   (html5
     [:head
@@ -14,9 +27,9 @@
      [:meta {:name "viewport"
              :content "width=device-width, initial-scale=1.0"}]
      ;; Include Scittle
-     (include-js "https://cdn.jsdelivr.net/npm/scittle@0.6.22/dist/scittle.js")
+     (include-js "static/scittle.js")
      ;; Include Reagent if you want to use it
-     (include-js "https://cdn.jsdelivr.net/npm/scittle@0.6.15/dist/scittle.reagent.js")
+     (include-js "static/scittle.reagent.js")
      [:script {:type "application/x-scittle"}
       "
        (def app-element (.getElementById js/document \"app\"))
@@ -38,9 +51,11 @@
 
 (defn handler
   [req]
-  {:status  200
-   :headers {"Content-Type" "text/html; charset=utf-8"}
-   :body    (hello-page)})
+  (if (.startsWith (:uri req) "/static")
+    (serve-static req)
+    {:status  200
+     :headers {"Content-Type" "text/html; charset=utf-8"}
+     :body    (main-page)}))
 
 
 (defn -main
