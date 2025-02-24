@@ -1,20 +1,19 @@
 (ns server
   (:require
     [hiccup.page :refer [html5 include-js]]
-    [clojure.java.io :as io]
+    [babashka.fs :as fs]
     [org.httpkit.server :as server]))
 
 (defn serve-static [req]
-  (let [file-path (apply str (rest (:uri req)))
-        file (io/file file-path)]
-    (if (.exists file)
+  (let [file-path (apply str (rest (:uri req)))]
+    (if (fs/exists? file-path)
       {:status 200
        :headers {"Content-Type" (case (.substring file-path (inc (.lastIndexOf file-path ".")))
                                  "css" "text/css"
                                  "js" "text/javascript"
                                  "html" "text/html"
                                  "application/octet-stream")}
-       :body (slurp file)}
+       :body (slurp file-path)}
       {:status 404
        :body "Not found"})))
 
