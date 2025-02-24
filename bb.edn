@@ -1,3 +1,31 @@
 {:paths ["src"]
  :deps {http-kit/http-kit {:mvn/version "2.7.0"}
-        hiccup/hiccup {:mvn/version "2.0.0-alpha2"}}}
+        hiccup/hiccup {:mvn/version "2.0.0-alpha2"}
+        babashka/fs {:mvn/version "0.5.24"}}
+ :tasks
+ {watch {:requires ([babashka.fs :as fs]
+                    [babashka.process :refer [process destroy]])
+         :task (let [server-process (atom nil)
+                     server-file "src/server.clj"
+                     last-modified (atom (fs/last-modified-time server-file))
+                     restart (fn []
+                               (when (deref server-process)
+                                 (println "Stopping server...")
+                                 (destroy (deref server-process))
+                                 (reset! server-process nil))
+                               (println "Starting server...")
+                               (reset! server-process
+                                       (process
+                                         ["bb" "src/server.clj"]
+                                         {:inherit true})))]
+                 (restart)
+                 (while true
+                   (let [current-modified (fs/last-modified-time server-file)]
+                     (when (not= (deref last-modified) current-modified)
+                       (println "\nFile change detected, restarting...")
+                       (reset! last-modified current-modified)
+                       (restart)))
+                   (Thread/sleep 1000)))}}}
+
+
+

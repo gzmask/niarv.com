@@ -24,7 +24,7 @@
        (set! (.-innerHTML app-element) \"Hello from ...\")
        (defn hello-world []
          (js/alert \"You clicked!\")
-         (set! (.-innerHTML app-element) \"Hello from ClojureScript!\"))
+         (set! (.-innerHTML app-element) \"Hello from niarv.com!\"))
        ;; export function to use from JavaScript:
        (set! (.-hello_world js/window) hello-world)
        "]]
